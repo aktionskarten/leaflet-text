@@ -24,7 +24,7 @@ $ npm install leaflet-text
 ## Quickstart
 
 ```javascript
-import {svgLabelledTextBox} from 'leaflet-text-editable'
+import {svgLabelledTextBox} from 'leaflet-text'
 
 const map = L.map('map').setView([52.5069,13.4298], 15);
 
