@@ -1,6 +1,6 @@
 {
   "name": "leaflet-text",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Text support through embedded SVGs",
   "main": "src/index.js",
   "dependencies": {
