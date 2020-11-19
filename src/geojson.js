@@ -1,5 +1,5 @@
 import L from 'leaflet'
-import {svgText} from '@/text'
+import {svgText} from './text'
 
 const ExtendedGeoJSON = L.GeoJSON.extend({
   addData(geojson) {
