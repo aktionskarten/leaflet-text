@@ -1,35 +1,50 @@
 import L from 'leaflet'
-import {svgText} from './text'
+import {SVGText} from './text'
 
 const ExtendedGeoJSON = L.GeoJSON.extend({
   addData(geojson) {
-    if (!geojson.properties || !(geojson.properties.label || geojson.properties.text)) {
+    var features = Array.isArray(geojson) ? geojson : geojson.features;
+    if (features) {
       return L.GeoJSON.prototype.addData.call(this, geojson);
     }
 
+    const layer = this.createLayer(geojson);
+    if (!layer) {
+      return this;
+    }
+
+    return this.addLayer(layer);
+  },
+
+  createLayer(geojson) {
     const options = this.options; 
     if (options.filter && !options.filter(geojson)) {
       return this;
     }
 
-    const layer = L.GeoJSON.geometryToLayer(geojson, options);
+    let layer = L.GeoJSON.geometryToLayer(geojson, options);
     if (!layer) {
-      return this;
+      return null;
     }
 
-    const text = svgText(layer.getBounds());
-    text.setLabel(geojson.properties.label || "");
-    text.setText(geojson.properties.text || "");
-    text.feature = L.GeoJSON.asFeature(geojson);
+    if (geojson.properties && (geojson.properties.label || geojson.properties.text)) {
+      const klass = this.options.textClass || SVGText;
+      const text = new klass(layer.getBounds());
+      text.setLabel(geojson.properties.label || "");
+      text.setText(geojson.properties.text || "");
+      layer = text;
+    }
 
-    text.defaultOptions = layer.options;
-    this.resetStyle(text);
+    layer.feature = L.GeoJSON.asFeature(geojson);
+
+    layer.defaultOptions = layer.options;
+    this.resetStyle(layer);
 
     if (options.onEachFeature) {
-      options.onEachFeature(geojson, text);
+      options.onEachFeature(geojson, layer);
     }
 
-    return this.addLayer(text);
+    return layer;
   }
 });
 

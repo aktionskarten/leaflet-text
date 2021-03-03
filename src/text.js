@@ -97,8 +97,10 @@ const SVGText = L.SVGOverlay.extend({
   },
 
   getSize() {
+    const sizes = L.point(0, 0)
+    sizes.fontRatio = 0;
     if (!this._map) {
-      return L.point(0, 0);
+      return sizes; 
     }
 
     // use viewbox which is definitely too small, so the resulting bbox will
@@ -114,9 +116,15 @@ const SVGText = L.SVGOverlay.extend({
     container.appendChild(elem)
     this.render(elem);
     const bbox = elem.getBBox();
+    const fontSize = elem.getElementsByClassName('label')[0].getBBox().height
     container.removeChild(elem)
 
-    return L.point(bbox.width, bbox.height);
+    sizes.x = bbox.width;
+    sizes.y = bbox.height;
+    console.log("fontSize", fontSize, bbox.height, fontSize/bbox.height)
+    sizes.fontRatio = fontSize/bbox.height;
+
+    return sizes;
   },
 
   getRatio() {
@@ -144,10 +152,8 @@ const SVGTextBox = L.Rectangle.extend({
     this.resetStyle();
 
     // add/remove overlay automatically
-    this.on('remove', this.overlay.remove, this)
-    this.on('add',(e) => {
-      this.overlay.addTo(this._map)
-    })
+    this.on('remove', (e)=>this.overlay.remove())
+    this.on('add', (e)=>this.overlay.addTo(this._map))
 
     // Bubble change events up
     this.overlay.on('text:update', (e) => {
