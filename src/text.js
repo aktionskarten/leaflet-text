@@ -1,54 +1,53 @@
-import L from 'leaflet'
-import './text.css'
-
+import L from 'leaflet';
+import './text.css';
 
 const SVGText = L.SVGOverlay.extend({
   svg: null,
   debug: false,
 
-  initialize: function(bounds, options) {
+  initialize(bounds, options) {
     options = options || {};
 
-    this.svg = this._createSVG(50, 100)
-    this.svg.setAttribute('overflow', 'visible')
-    this.svg.setAttribute('class', 'SVGText')
+    this.svg = this.createSVG(50, 100);
+    this.svg.setAttribute('overflow', 'visible');
+    this.svg.setAttribute('class', 'SVGText');
 
     this.color = options.color || '#FF0000';
-    this.label = ''
-    this.text = ''
+    this.label = '';
+    this.text = '';
 
     this.on('add', this.redraw, this);
 
     L.SVGOverlay.prototype.initialize.call(this, this.svg, bounds, options);
   },
 
-  _createSVG(width, height) {
-    const elem = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  createSVG(width, height) {
+    const elem = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     elem.setAttribute('viewBox', `0 0 ${width} ${height}`);
     return elem;
   },
 
   render(elem) {
-    let innerHTML = ''
+    let innerHTML = '';
 
     // debug rectangle
     if (this.debug) {
-      innerHTML += `<rect x="0" y="0" width="100%" height="100%" />\n`
+      innerHTML += '<rect x="0" y="0" width="100%" height="100%" />\n';
     }
 
     // label (with colored halo effect powered by css (as svg filters don't
     // perform well - see http://www.crmarsh.com/svg-performance)
     if (this.label) {
-      const coords = [[2,2,],[2,-2],[-2,2],[-2,-2]];
-      const shadows = coords.map(coords => `${coords[0]}px ${coords[1]}px 5px ${this.color}`);
-      innerHTML += `<text y="1em" class="label" style="text-shadow: ${shadows.join(',')}"><tspan>${this.label}</tspan></text>`
+      const coords = [[2, 2], [2, -2], [-2, 2], [-2, -2]];
+      const shadows = coords.map((coord) => `${coord[0]}px ${coord[1]}px 5px ${this.color}`);
+      innerHTML += `<text y="1em" class="label" style="text-shadow: ${shadows.join(',')}"><tspan>${this.label}</tspan></text>`;
     }
 
     // content
     if (this.text) {
       const lines = this.text.split('\n');
-      const tspans = lines.map(line => `<tspan x="0" dy="1em">${line.length>0?line:'&nbsp;'}</tspan>`);
-      innerHTML += `<text x="0" y="1.5em" class="content">${tspans.join('')}</text>`
+      const tspans = lines.map((line) => `<tspan x="0" dy="1em">${line.length > 0 ? line : '&nbsp;'}</tspan>`);
+      innerHTML += `<text x="0" y="1.5em" class="content">${tspans.join('')}</text>`;
     }
 
     elem.innerHTML = innerHTML;
@@ -58,7 +57,7 @@ const SVGText = L.SVGOverlay.extend({
     this.render(this.svg);
 
     // update viewport so everything fits
-    let sizes = this.getSize();
+    const sizes = this.getSize();
     this.svg.setAttribute('viewBox', `0 0 ${sizes.x} ${sizes.y}`);
 
     this.fire('text:update', this.getRatio());
@@ -67,7 +66,7 @@ const SVGText = L.SVGOverlay.extend({
   },
 
   setLabel(label) {
-    if (label != this.label) {
+    if (label !== this.label) {
       this.label = label;
       this.redraw();
     }
@@ -75,7 +74,7 @@ const SVGText = L.SVGOverlay.extend({
   },
 
   setText(text) {
-    if (text != this.text) {
+    if (text !== this.text) {
       this.text = text;
       this.redraw();
     }
@@ -84,12 +83,12 @@ const SVGText = L.SVGOverlay.extend({
 
   setStyle(style) {
     if (style && style.color) {
-      this.setColor(style['color']);
+      this.setColor(style.color);
     }
   },
 
   setColor(color) {
-    if (color != this.color) {
+    if (color !== this.color) {
       this.color = color;
       this.redraw();
     }
@@ -97,66 +96,57 @@ const SVGText = L.SVGOverlay.extend({
   },
 
   getSize() {
-    const sizes = L.point(0, 0)
-    sizes.fontRatio = 0;
     if (!this._map) {
-      return sizes; 
+      return L.point(0, 0);
     }
 
     // use viewbox which is definitely too small, so the resulting bbox will
     // exceed the viewbox sizes. Through this we end up with the minimized bbox
     // of our svg
-    const elem = this._createSVG(10, 10);
+    const elem = this.createSVG(10, 10);
 
     // don't actually show our intermediate svg
-    elem.setAttribute('visibility', 'hidden')
+    elem.setAttribute('visibility', 'hidden');
 
     // let the browser calculate the size by adding it temporarily to our map
-    const container = this._map._container
-    container.appendChild(elem)
+    const container = this._map._container;
+    container.appendChild(elem);
     this.render(elem);
     const bbox = elem.getBBox();
-    const fontSize = elem.getElementsByClassName('label')[0].getBBox().height
-    container.removeChild(elem)
+    container.removeChild(elem);
 
-    sizes.x = bbox.width;
-    sizes.y = bbox.height;
-    console.log("fontSize", fontSize, bbox.height, fontSize/bbox.height)
-    sizes.fontRatio = fontSize/bbox.height;
-
-    return sizes;
+    return L.point(bbox.width, bbox.height);
   },
 
   getRatio() {
     const sizes = this.getSize();
-    if (sizes.x == 0) {
+    if (sizes.x === 0) {
       return 1;
     }
-    return sizes.y/sizes.x;
+    return sizes.y / sizes.x;
   },
 });
 
-
-
-
 const SVGTextBox = L.Rectangle.extend({
   initialize(bounds, options) {
-    options = options || {}
+    options = options || {};
 
     // Use embedded text functionaliy of SVG element to render text
     // Display it then with help of SVG overlay.
-    this.overlay = new SVGText(bounds)
+    this.overlay = new SVGText(bounds);
 
     // Rectangle for resizing text
     L.Rectangle.prototype.initialize.call(this, bounds, options);
     this.resetStyle();
 
     // add/remove overlay automatically
-    this.on('remove', (e)=>this.overlay.remove())
-    this.on('add', (e)=>this.overlay.addTo(this._map))
+    this.on('remove', this.overlay.remove, this);
+    this.on('add', () => {
+      this.overlay.addTo(this._map);
+    });
 
     // Bubble change events up
-    this.overlay.on('text:update', (e) => {
+    this.overlay.on('text:update', () => {
       this.fire('text:update');
     });
   },
@@ -164,7 +154,7 @@ const SVGTextBox = L.Rectangle.extend({
   redraw() {
     L.Rectangle.prototype.redraw.call(this);
     if (this._map && this._map.hasLayer(this.overlay)) {
-      const bounds = L.latLngBounds(this.getLatLngs()[0])
+      const bounds = L.latLngBounds(this.getLatLngs()[0]);
       this.overlay.setBounds(bounds);
     }
   },
@@ -176,8 +166,8 @@ const SVGTextBox = L.Rectangle.extend({
     L.Rectangle.prototype.setStyle.call(this, style);
   },
 
-  resetStyle(style) {
-    L.Rectangle.prototype.setStyle.call(this, {'color': 'transparent'});
+  resetStyle() {
+    L.Rectangle.prototype.setStyle.call(this, { color: 'transparent' });
   },
 
   label() {
@@ -190,13 +180,13 @@ const SVGTextBox = L.Rectangle.extend({
 
   setLabel(text) {
     this.overlay.setLabel(text);
-    this.options.label = text
+    this.options.label = text;
     return this;
   },
 
   setText(text) {
     this.overlay.setText(text);
-    this.options.text = text
+    this.options.text = text;
     return this;
   },
 
@@ -206,28 +196,31 @@ const SVGTextBox = L.Rectangle.extend({
 
   setColor(color) {
     this.overlay.setColor(color);
-    this.setStyle({color: color});
+    this.setStyle({ color });
     return this;
   },
 
   getSize() {
     if (!this._map) {
-      return L.point(0,0);
+      return L.point(0, 0);
     }
 
     const bounds = this._bounds;
     const bottomLeft = this._map.latLngToLayerPoint(bounds.getSouthWest());
     const topRight = this._map.latLngToLayerPoint(bounds.getNorthEast());
-    const width = Math.abs(bottomLeft.x-topRight.x);
-    const height = Math.abs(bottomLeft.y-topRight.y);
+    const width = Math.abs(bottomLeft.x - topRight.x);
+    const height = Math.abs(bottomLeft.y - topRight.y);
 
     return L.point(width, height);
-  }
+  },
 });
 
+const svgText = (text, options) => new SVGText(text, options);
+const svgTextBox = (bounds, text, options) => (new SVGTextBox(bounds, options)).setText(text);
+const svgLabelledTextBox = (bounds, label, text, options) => {
+  (new SVGTextBox(bounds, options)).setLabel(label).setText(text);
+};
 
-const svgText = (text, options) => new SVGText(text, options)
-const svgTextBox = (bounds, text, options) => (new SVGTextBox(bounds, options)).setText(text)
-const svgLabelledTextBox = (bounds, label, text, options) => (new SVGTextBox(bounds, options)).setLabel(label).setText(text)
-
-export {svgLabelledTextBox, svgTextBox, SVGTextBox, svgText, SVGText}
+export {
+  svgLabelledTextBox, svgTextBox, SVGTextBox, svgText, SVGText,
+};

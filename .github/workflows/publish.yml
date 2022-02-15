@@ -19,7 +19,7 @@ jobs:
     needs: lint
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - 
+      -
         name: Publish to npmjs.com
         uses: JS-DevTools/npm-publish@v1
         with:

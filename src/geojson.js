@@ -1,9 +1,9 @@
-import L from 'leaflet'
-import {SVGText} from './text'
+import L from 'leaflet';
+import { SVGText } from './text';
 
 const ExtendedGeoJSON = L.GeoJSON.extend({
   addData(geojson) {
-    var features = Array.isArray(geojson) ? geojson : geojson.features;
+    const features = Array.isArray(geojson) ? geojson : geojson.features;
     if (features) {
       return L.GeoJSON.prototype.addData.call(this, geojson);
     }
@@ -16,8 +16,9 @@ const ExtendedGeoJSON = L.GeoJSON.extend({
     return this.addLayer(layer);
   },
 
+  /* eslint-disable new-cap */
   createLayer(geojson) {
-    const options = this.options; 
+    const { options } = this;
     if (options.filter && !options.filter(geojson)) {
       return this;
     }
@@ -30,8 +31,8 @@ const ExtendedGeoJSON = L.GeoJSON.extend({
     if (geojson.properties && (geojson.properties.label || geojson.properties.text)) {
       const klass = this.options.textClass || SVGText;
       const text = new klass(layer.getBounds());
-      text.setLabel(geojson.properties.label || "");
-      text.setText(geojson.properties.text || "");
+      text.setLabel(geojson.properties.label || '');
+      text.setText(geojson.properties.text || '');
       layer = text;
     }
 
@@ -45,9 +46,9 @@ const ExtendedGeoJSON = L.GeoJSON.extend({
     }
 
     return layer;
-  }
+  },
 });
 
-const extendedGeoJSON = (geojson, options) => new ExtendedGeoJSON(geojson, options)
+const extendedGeoJSON = (geojson, options) => new ExtendedGeoJSON(geojson, options);
 
-export {extendedGeoJSON, ExtendedGeoJSON}
+export { extendedGeoJSON, ExtendedGeoJSON };
