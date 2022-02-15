@@ -1,17 +1,24 @@
-name: tests and publish docker container
+name: lint and publish
 
-on:
-  push:
-    tags:
-      - '**'
+on: push
 
 jobs:
-  all:
+  lint:
     runs-on: ubuntu-latest
     steps:
       -
         name: Checkout repo and subrepos
         uses: actions/checkout@v2
+      -
+        name: Install npm packages
+        run : npm install --only=dev
+      -
+        name: Run eslint
+        run: npm run lint
+  publish:
+    needs: lint
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
       - 
         name: Publish to npmjs.com
         uses: JS-DevTools/npm-publish@v1
