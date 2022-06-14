@@ -1,5 +1,6 @@
-import {version} from '../package.json'
-export {version}
+import { version } from '../package.json';
 
-export * from './text'
-export * from './geojson'
+export { version };
+
+export * from './text';
+export * from './geojson';
